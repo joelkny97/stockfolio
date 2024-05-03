@@ -1,0 +1,185 @@
+{% extends 'default.html' %}
+{% load static %}
+
+{% block main %}
+
+<form role="form" method="post" id="find-stock" action="{% url 'portfolio' %}">
+{% csrf_token %}
+
+    
+    <div class="form-group">
+      <div class="col-sm-8">
+        <input type="text" name="stock" id="input-find-stock" class="form-control" placeholder="Enter stock symbol">
+        <input type="hidden" name="which-form" value="find-stock"/>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary">Look up</button>
+      </div>
+    </div>
+</form>
+
+<div align="center" style="color: {% if money.profit == '+' %}green{% else %}red{% endif %};" class="page-header">
+    <table class="table table-condensed table-bordered table-striped volumes">
+      <tr>
+        <th>Spent: $ {{ money.spent  }}</th>
+        <th>Earned: $ {{ money.earnt }}</th>
+        <th>Portfolio Value: $ {{ money.value }}</th>
+      </tr>
+    </table>
+</div>
+
+
+{% if portfolio %}
+    <div align="center" class="page-header">
+      <h1>PORTFOLIO</h1>
+    </div>
+
+    <ul class="nav nav-tabs" id="product-table">
+      <li class="active"><a href="#portfolio1" data-toggle="tab">Basic Information</a></li>
+      <!-- <li><a href="#portfolio2" data-toggle="tab">Financial Ratios</a></li>
+      <li><a href="#portfolio3" data-toggle="tab">Real Time Data</a></li>
+      <li><a href="#portfolio4" data-toggle="tab">Changes and Trends</a></li>
+      <li><a href="#portfolio5" data-toggle="tab">Additional Information</a></li> -->
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane active" id="portfolio1">
+        <table id="portfolio-stocks" class="table table-condensed table-bordered table-striped volumes">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Symbol</th>
+              <th>Shares</th>
+              <th>Cost</th>
+              <th>Last Price</th>
+              
+              <th>Volume</th>
+              <th>Open</th>
+              <th>High</th>
+              <th>Low</th>
+              <th>Previous Close</th>
+              <th style="min-width:200px">BUY/SELL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stocks in portfolio %}
+              <tr>
+                <td>{{ stocks.name }}</td>
+                <td class="portfolio-stock-symbol">{{ stocks.symbol }}</td>
+                <td>{{ stocks.shares }}</td>
+                <td class="portfolio-stock-cost">{{ stocks.cost }}</td>
+                <td>$ {{ stocks.close }}</td>
+                
+                <td>{{ stocks.volume|floatformat:4 }}</td>
+                <td>{{ stocks.open|floatformat:4 }}</td>
+                <td>{{ stocks.high|floatformat:4 }}</td>
+                <td>{{ stocks.low|floatformat:4 }}</td>
+                <td>{{ stocks.previous_close|floatformat:4  }}</td>
+                <td>
+                  <form method="post" class="form-inline" role="form" action="{% url 'portfolio' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                      <input style="width:75px" class="form-control" name="shares" class="number" placeholder="Shares" type="text"/>
+                      <input type="hidden" name="which-form" value="buy-sell"/>
+                      <input type="hidden" name="stock-symbol" value="{{ stocks.symbol }}"/>
+                      <input type="hidden" name="cost-per-share" value="{{ stocks.close }}"/>
+                    </div>
+                    <div class="btn-group">
+                      <button type="submit" name="buy-stock" value="buy-stock" class="btn btn-primary">Buy</button>
+                      <button type="submit" name="sell-stock" value="sell-stock" class="btn btn-primary">Sell</button>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+
+  {% endif %}
+
+  {% if portfolio_rows %}
+
+  <ul class="nav nav-tabs" id="graph-tab">
+    <li class="nav-item">
+        <a href="#chart1" data-toggle="tab" class="nav-link active" data-toggle="tab" role="tab" aria-controls="chart1" aria-selected="true">
+            <h4>Portfolio OHLC and Volume</h4>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="#chart2" data-toggle="tab" class="nav-link active" data-toggle="tab" role="tab" aria-controls="chart2" aria-selected="true"><h4>PortFolio Value vs. Time</h4>
+        </a>
+    </li>
+    <!-- <li class="nav-item">
+        <a href="#chart3" data-toggle="tab" class="nav-link active" data-toggle="tab" role="tab" aria-controls="chart3" aria-selected="true"><h4>Stock Value Pie Chart</h4>
+        </a>
+    </li> -->
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane active" id="chart1">
+      <div id="portfolio-ohlc"></div>
+    </div>
+    <div class="tab-pane" id="chart2">
+      <div id="portfolio-time-val-graph" style="height:400px;width:980px"></div>
+    </div>
+    <!-- <div class="tab-pane" id="chart3">
+      <div id="pie"></div>
+    </div> -->
+  </div>
+
+  <div class="accordion" id="accordion1">
+    <div class="accordion-item">
+      <h4 class="accordion-header">
+        <button class="accordion-buttion" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+            Portfolio Historical Data
+        </button>
+      </h4>
+    </div>
+    <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#accordion1">
+      <div class="accordion-body">
+        <table id="portfolio-time-val-table" class="table table-striped">
+          <thead>
+            <th>Portfolio Value</th>
+            <th>Date</th>
+            <th>Percent</th>
+            <th>Volume</th>
+            <th>Open</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Close</th>
+          </thead>
+          <tbody>
+            {% for row in portfolio_rows %}
+            <tr>
+              <td class="portfolio-table-value">${{ row.Value  }}</td>
+              <td class="portfolio-table-date">{{ row.Date }}</td>
+              <td style="color: {% if row.Percent > 0 %}green{% else %}red{% endif %};">
+                  {% if row.Percent > 0 %}+{% endif %}{{ row.Percent | floatformat:2 }}
+              </td>
+              <td class="portfolio-table-vol">{{ row.Volume }}</td>
+              <td class="portfolio-table-open">{{ row.Open | floatformat:2 }}</td>
+              <td class="portfolio-table-high">{{ row.High | floatformat:2 }}</td>
+              <td class="portfolio-table-low">{{ row.Low | floatformat:2 }}</td>
+              <td class="portfolio-table-close">{{ row.Close | floatformat:2 }}</td>
+              
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+    <script src="{%  static 'js/plot-val-time.js' %} " type="text/javascript"></script>
+    <script src="{%  static 'js/plot-ohlcv.js' %}" type="text/javascript"></script>
+    <script src="{%  static 'js/plot-pie.js' %}" type="text/javascript" ></script>
+
+    <link rel="stylesheet" type="text/css" href="{%  static 'css/techan-plot.css' %}" />
+
+
+  {% endif %}
+
+  
+    
+
+{% endblock %}

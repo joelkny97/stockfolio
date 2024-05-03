@@ -1,0 +1,20 @@
+
+
+{% extends 'default.html' %}
+{% load static %}
+{% block main %}
+
+
+<div>
+    
+    <form action="{% url 'stocktracker' %}" submit="stockpicker" method="post">
+        <label for="stockpicker">Select stocks to view</label>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-grid gap-2">
+            <input class="btn btn-primary" type="submit" value="Submit">
+        </div>
+    </form>
+</div>
+
+{% endblock %}

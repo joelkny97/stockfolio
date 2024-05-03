@@ -1,0 +1,135 @@
+{% extends 'default.html' %}
+{% load static %}
+{% block main %}
+<div class="container-fluid">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Symbol</th>
+                <th scope="col">Name</th>
+                <th scope="col">Exchange</th>
+                <th scope="col">Open</th>
+                <th scope="col">High</th>
+                <th scope="col">Low</th>
+                <th scope="col">Close</th>
+                <th scope="col">Previous Close</th>
+                <th scope="col">Percent Change</th>
+                <th scope="col">Average Volume</th>
+                <th scope="col">52 Week High</th>
+                <th scope="col">52 Week Low</th>
+                <th scope="col">Range</th>
+                <th scope="col">Last Updated</th>
+                <th scope="col">Actions</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in df %}
+            <tr>
+                <th scope="row">{{ stock.symbol }}</th>
+                <td>{{ stock.name }}</td>
+                <td>{{ stock.exchange }}</td>
+                <td id="{{stock.symbol}}_open">{{ stock.open|floatformat:4 }}</td>
+                <td>{{ stock.high|floatformat:4 }}</td>
+
+                <td>{{ stock.low|floatformat:4 }}</td>
+                <td id="{{stock.symbol}}_close">{{ stock.close|floatformat:4 }}</td>
+                <td id="{{stock.symbol}}_prevClose">{{ stock.previous_close|floatformat:4 }}</td>
+                <td id="{{stock.symbol}}_percentChange">
+                    {{ stock.percent_change|floatformat:4 }}
+
+                    <script>
+
+                        percentChange = Number(({{ stock.percent_change }}).toFixed(4));
+                        if (percentChange > 0) {
+                            document.getElementById("{{stock.symbol}}_percentChange").className = "text-success";
+
+                        }
+                        else if (percentChange == 0) {
+                            document.getElementById("{{stock.symbol}}_percentChange").className = "text-secondary";
+
+                        }
+                        else {
+                            document.getElementById("{{stock.symbol}}_percentChange").className = "text-danger";
+
+                        }
+                    </script>
+
+                </td>
+                <td id="{{stock.symbol}}_avgVol">{{ stock.average_volume|floatformat:4 }}</td>
+                <td>{{ stock.fifty_two_week.high|floatformat:4 }}</td>
+                <td>{{ stock.fifty_two_week.low|floatformat:4 }}</td>
+                <td>{{ stock.fifty_two_week.range }}</td>
+                <td>{{ stock.datetime }}</td>
+
+                <td>
+                    <form method="post" class="form-inline" role="form" action="{% url 'portfolio' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                          <input style="width:75px" class="form-control" name="shares" class="number" placeholder="Shares" type="text"/>
+                          <input type="hidden" name="which-form" value="buy-sell"/>
+                          <input type="hidden" name="stock-symbol" value="{{ stock.symbol }}"/>
+                          <input type="hidden" name="cost-per-share" value="{{ stock.close }}"/>
+                        </div>
+                        <div class="btn-group">
+                          <button type="submit" name="buy-stock" value="buy-stock" class="btn btn-primary">Buy</button>
+                          <button type="submit" name="sell-stock" value="sell-stock" class="btn btn-primary">Sell</button>
+                        </div>
+                      </form>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{{ room_name|json_script:"room_name" }}
+{{ selected_stocks|json_script:"selected_stocks" }}
+<script>
+    const roomName = JSON.parse(document.getElementById('room_name').textContent);
+    // var queryString = JSON.parse(document.getElementById('selected_stocks').textContent);
+
+    queryString = encodeURIComponent( {{selected_stocks|safe}} );
+    console.log(queryString);
+    const stockSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/stock/' + roomName + '/' +'?' + 'selected_stocks='+ queryString
+    );
+
+    stockSocket.onmessage = function(e) {
+    console.log(e.data);
+    const data = JSON.parse(e.data);
+    console.log(data);
+    data.forEach((stock) => {
+
+        var close = Number(stock['close'] ).toFixed(4);
+        var prevClose = Number(stock['previous_close']).toFixed(4);
+        var open  = Number(stock['open']).toFixed(4);
+        var avgVol = Number(stock['average_volume']).toFixed(4);
+        document.getElementById(stock['symbol']+ '_close').innerHTML = close;
+        document.getElementById(stock['symbol']+ '_prevClose').innerHTML = prevClose;
+        document.getElementById(stock['symbol']+ '_open').innerHTML = open;
+        document.getElementById(stock['symbol']+ '_avgVol').innerHTML = avgVol;
+
+        var percentChange = Number((stock['percent_change']).toFixed(4));
+        if (percentChange > 0) {
+            document.getElementById(stock['symbol']+ "_percentChange").innerHTML.className = "text-success";
+
+        }
+        else if (percentChange == 0) {
+            document.getElementById(stock['symbol']+ "_percentChange").innerHTML.className = "text-secondary";
+
+        }
+        else {
+            document.getElementById(stock['symbol']+ "_percentChange").innerHTML.className = "text-danger";
+
+        }
+    } )
+
+};   
+
+
+</script>
+
+
+{% endblock %}
