@@ -7,3 +7,6 @@ class StockDetails(models.Model):
 
     stock = models.CharField(max_length=255, unique=True)
     user = models.ManyToManyField(User)
+
+    def __str__(self) -> str:
+        return self.stock

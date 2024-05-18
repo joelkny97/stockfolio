@@ -13,11 +13,11 @@ app.conf.update(timezone = 'US/Eastern')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.beat_schedule = {
-    'every-10-seconds': {
-        'task': 'stockviewer.tasks.update_quotes',
-        'schedule': 10,
-        'args': (['AAPL','MSFT'],) 
-    },
+    # 'every-30-seconds': {
+    #     'task': 'stockviewer.tasks.update_quotes',
+    #     'schedule': 30,
+    #     'args': ([''],) 
+    # },
     
 }
 

@@ -1,1 +1,5 @@
 .env
+stockviewer/__pycache__/**
+stockviewer/migrations/__pycache__/**
+stockgenfolio/__pycache__/**
+

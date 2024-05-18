@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'channels',
     'daphne',
     'django.contrib.staticfiles',
+    'django_vite',
 
 ]
 

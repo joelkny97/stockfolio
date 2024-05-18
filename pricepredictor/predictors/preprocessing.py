@@ -143,7 +143,7 @@ def get_y_index(dataset, X_train, n_steps_in, n_steps_out):
 
 def run_preprocessing(stock_symbol, n_steps_in=5, n_steps_out=1):
     ts_end = get_data(stock_symbol)
-    df = prepare_df(symbols=[stock_symbol], file_date='2024-05-01')
+    df = prepare_df(symbols=[stock_symbol], file_date=ts_end)
 
     df_tech_ind = add_technical_indicators(df)
 

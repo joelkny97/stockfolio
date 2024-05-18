@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from .util.stock_retriever import read_symbols_file, get_multi_stock_quotes
 from .forms import StockPickerForm
 from stockportfolio.models import StockFolioUser
-
+from asgiref.sync import sync_to_async, async_to_sync
 
 def index(request):
     '''The home page for StockGenFolio'''
@@ -37,7 +37,7 @@ def stockpicker(request):
         if form.is_valid():
             
             selected_stocks = form.cleaned_data.get('stockpicker')
-            print(selected_stocks)
+            # print(selected_stocks)
         return HttpResponseRedirect(reverse('stocktracker') )
     else:
         form = StockPickerForm()
@@ -46,11 +46,17 @@ def stockpicker(request):
 
     return render(request, 'stockviewer/stockpicker.html',context=context)
 
-def stocktracker(request):
+@sync_to_async
+def is_authenticated(request):
+    return request.user.is_authenticated
+async def stocktracker(request):
+    is_logged_in = await is_authenticated(request)
+    if not is_logged_in:
+      return HttpResponse("Login Required", status=401)
     context={}
     selected_stocks = request.POST.getlist('available_stocks')
 
-    # print(selected_stocks)
+    print(request.user.id)
     df = get_multi_stock_quotes(selected_stocks)
 
     context['df'] = df

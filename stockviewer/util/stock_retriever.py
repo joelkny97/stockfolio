@@ -78,6 +78,8 @@ def get_multi_stock_quotes(tickers:list):
     except requests.exceptions.HTTPError as err:
         print(err)
         return []
+    except Exception as e:
+        print(e)
     else:
     # print(response.request.url)
         data = response.json()['data']

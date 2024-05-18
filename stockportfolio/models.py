@@ -7,7 +7,7 @@ class StockFolioUser(models.Model):
   '''Add StockFolio data to User'''
   first_name = models.CharField(default='', max_length=50)
   last_name = models.CharField(default='', max_length=50)
-  user = models.OneToOneField(User,on_delete=models.CASCADE)
+  user = models.OneToOneField(User,on_delete=models.CASCADE, to_field='id')
   earnt = models.FloatField(default=0)
   spent = models.FloatField(default=0)
 
